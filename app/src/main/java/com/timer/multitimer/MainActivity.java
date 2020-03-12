@@ -6,6 +6,9 @@ import androidx.databinding.DataBindingUtil;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences preferences;
     private static final String TIMES_LIST = "times list";
     public static final String MYLOG_TEG = "my log";
+    private Ringtone ringtone;
 
 
     @Override
@@ -73,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         binding.addNewTimerButton.setOnClickListener(v -> {
             if (timerModels.size() > 0) {
                 adTimerToList();
-            }else{
+            } else {
                 getDataForTimer();
                 adTimerToList();
             }
@@ -87,12 +91,14 @@ public class MainActivity extends AppCompatActivity {
         String minutesTextViewS = timerModels.get(timerModels.size() - 1).getMinutesTextViewS();
         String secondsTextViewS = timerModels.get(timerModels.size() - 1).getSecondsTextViewS();
 
-        TextView timerTitleextView = new TextView(this);
+        TextView timerTitleTextView = new TextView(this);
         TextView hoursTextView = new TextView(this);
-        binding.timersList.addView(timerTitleextView);
+        binding.timersList.addView(timerTitleTextView);
         binding.timersList.addView(hoursTextView);
+        timerTitleTextView.setTextColor(getResources().getColor(R.color.colorAccent));
+        hoursTextView.setTextColor(getResources().getColor(R.color.colorAccent));
 
-        timerTitleextView.setText(timerTitle);
+        timerTitleTextView.setText(timerTitle);
         hoursTextView.setText(String.format("%s:%s:%s", hoursTextViewString, minutesTextViewS, secondsTextViewS));
     }
 
@@ -101,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
         if (!hoursTextViewString.isEmpty()) {
             int hours = Integer.parseInt(hoursTextViewString) * 3600000;
             timerTime = timerTime + hours;
+        } else {
+            hoursTextViewString = "00";
         }
 
         minutesTextViewS = binding.minutesTextView.getText().toString();
@@ -108,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
             int minutes = Integer.parseInt(minutesTextViewS) * 60000;
             timerTime = timerTime + minutes;
 
+        } else {
+            minutesTextViewS = "00";
         }
 
         secondsTextViewS = binding.secondsTextView.getText().toString();
@@ -115,14 +125,16 @@ public class MainActivity extends AppCompatActivity {
             int secs = Integer.parseInt(secondsTextViewS) * 1000;
             timerTime = timerTime + secs;
 
+        } else {
+            secondsTextViewS = "00";
         }
 
         String timerTitle = binding.timerTitleTextView.getText().toString();
 
         timerModels.add(new TimerModel(hoursTextViewString, minutesTextViewS, secondsTextViewS, timerTime, timerTitle));
 
-        Log.d(MYLOG_TEG, "timerModels "  + timerModels.get(timerModels.size() -1));
-        Log.d(MYLOG_TEG, "timerModels.size() "  + timerModels.size());
+        Log.d(MYLOG_TEG, "timerModels " + timerModels.get(timerModels.size() - 1));
+        Log.d(MYLOG_TEG, "timerModels.size() " + timerModels.size());
         //preferences.edit().putString(TIMES_LIST, String.valueOf(timerModels));
 
     }
@@ -148,7 +160,14 @@ public class MainActivity extends AppCompatActivity {
             public void onFinish() {
 
                 showMessage(binding.timerTitleTextView.getText().toString() + " " + "finish");
-                //TODO add saud and mesege
+                try {
+                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                    ringtone.play();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                //TODO add nyvedomlenie
             }
         };
     }
@@ -159,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setNegativeButton("ОК",
                         (dialog, id) -> {
+                            ringtone.stop();
                             dialog.cancel();
                         });
         AlertDialog alert = builder.create();

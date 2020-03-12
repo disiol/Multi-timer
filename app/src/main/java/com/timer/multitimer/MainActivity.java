@@ -2,6 +2,8 @@ package com.timer.multitimer;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.databinding.DataBindingUtil;
 
 import android.annotation.SuppressLint;
@@ -35,6 +37,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String TIMES_LIST = "times list";
     public static final String MYLOG_TEG = "my log";
     private Ringtone ringtone;
+
+
+    private static final int NOTIFY_ID = 101;
+    // Идентификатор канала
+    private static String CHANNEL_ID = "Cat channel";
 
 
     @Override
@@ -159,20 +166,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
 
-                showMessage(binding.timerTitleTextView.getText().toString() + " " + "finish");
+                String message = binding.timerTitleTextView.getText().toString() + " " + "finish";
+                showMessage(message);
                 try {
                     Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                     ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
                     ringtone.play();
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                //TODO add nyvedomlenie
+                //TODO add nyvedomlenie del timer from list
             }
         };
     }
 
+    private void notification(String title, String text) {
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(MainActivity.this, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.background)
+                        .setContentTitle(title)
+                        .setContentText(text)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        NotificationManagerCompat notificationManager =
+                NotificationManagerCompat.from(MainActivity.this);
+        notificationManager.notify(NOTIFY_ID, builder.build());
+    }
+
     public void showMessage(String message) {
+        notification("Напоминание", message);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message)
                 .setCancelable(false)
